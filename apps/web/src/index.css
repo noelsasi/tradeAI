@@ -1,0 +1,144 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: #f4f7fb;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+#root {
+  min-height: 100vh;
+  font-family: 'Inter', system-ui, sans-serif;
+  color: #0f1b2d;
+}
+
+::selection {
+  background: #2563eb22;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+  border: 3px solid #f4f7fb;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+@keyframes ta-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.ta-spin {
+  animation: ta-spin 0.8s linear infinite;
+}
+
+@keyframes ta-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.7);
+  }
+}
+.ta-pulse {
+  animation: ta-pulse 1.3s ease-in-out infinite;
+}
+
+@keyframes ta-fade {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.ta-fade {
+  animation: ta-fade 0.35s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* Page transition */
+@keyframes ta-screen-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.ta-screen {
+  animation: ta-screen-in 0.28s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+/* Skeleton shimmer */
+@keyframes ta-shimmer {
+  from {
+    background-position: -600px 0;
+  }
+  to {
+    background-position: 600px 0;
+  }
+}
+.ta-skeleton {
+  background: linear-gradient(90deg, #EEF2F6 25%, #E2E8F0 50%, #EEF2F6 75%);
+  background-size: 600px 100%;
+  animation: ta-shimmer 1.4s ease-in-out infinite;
+}
+
+/* Responsive: results sidebar → stacked on mobile */
+@media (max-width: 768px) {
+  .results-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .results-sidebar {
+    position: static !important;
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+  }
+}
+
+/* Responsive: top bar — hide NexavineTag + user name on small screens */
+@media (max-width: 600px) {
+  .topbar-nexavine {
+    display: none;
+  }
+  .topbar-username {
+    display: none;
+  }
+  .topbar-nav button {
+    padding: 6px 10px !important;
+    font-size: 12px !important;
+  }
+}
+
+/* Drawer full-screen on mobile */
+@media (max-width: 600px) {
+  .detail-drawer-panel {
+    width: 100vw !important;
+    top: 0 !important;
+  }
+}
