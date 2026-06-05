@@ -21,7 +21,7 @@ services:
         fromService:
           name: tradeai-ai
           type: web
-          property: host
+          property: url
       - key: CORS_ORIGIN
         sync: false           # https://tradeai.nexavinetech.com — set in Render dashboard
       - key: REDIS_URL
