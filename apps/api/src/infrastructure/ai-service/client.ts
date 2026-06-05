@@ -1,6 +1,15 @@
 import { env } from '@/config/env.js';
 import type { ClassifyRequest, ClassifyResponse } from '@tradeai/types';
 
+// Snake_case shape returned by the Python AI service /extract endpoint
+export interface ExtractedItem {
+  line_number: number;
+  description: string;
+  quantity?: number;
+  origin_country?: string;
+  unit_value?: number;
+}
+
 export class AiServiceError extends Error {
   constructor(
     message: string,
@@ -78,6 +87,29 @@ export async function aiClassify(req: ClassifyRequest): Promise<ClassifyResponse
 
   const raw = (await res.json()) as PythonClassifyResponse;
   return mapClassifyResponse(raw);
+}
+
+export async function aiExtract(formData: FormData): Promise<{ items: ExtractedItem[] }> {
+  let res: Response;
+  try {
+    res = await fetch(`${env.AI_SERVICE_URL}/extract`, {
+      method: 'POST',
+      body: formData,
+      signal: AbortSignal.timeout(120_000),
+    });
+  } catch (err) {
+    if (err instanceof Error && err.name === 'TimeoutError') {
+      throw new AiServiceError('AI service timed out', 'AI_TIMEOUT', 504);
+    }
+    throw new AiServiceError('AI service unreachable', 'AI_UNREACHABLE', 502);
+  }
+
+  if (!res.ok) {
+    const body = await res.text().catch(() => '');
+    throw new AiServiceError(`AI service returned ${res.status}: ${body}`, 'AI_ERROR', 502);
+  }
+
+  return res.json() as Promise<{ items: ExtractedItem[] }>;
 }
 
 export async function aiProcess(jobId: string, formData: FormData): Promise<void> {

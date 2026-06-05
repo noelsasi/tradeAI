@@ -66,7 +66,7 @@ export async function processDocumentJob(
     for (const item of items) {
       const context: ClassifyContext = {
         originCountry: item.origin_country ?? undefined,
-        quantity: item.quantity ?? undefined,
+        quantity: item.quantity != null ? String(item.quantity) : undefined,
         unitValue: item.unit_value ?? undefined,
         language,
       };
