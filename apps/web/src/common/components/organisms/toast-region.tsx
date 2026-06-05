@@ -33,7 +33,7 @@ export function ToastRegion() {
               maxWidth: 360,
             }}
           >
-            <span style={{ color: iconColor, display: 'flex', shrink: 0 }}>
+            <span style={{ color: iconColor, display: 'flex' }}>
               <Icon size={16} strokeWidth={2.4} />
             </span>
             <span className="flex-1">{toast.message}</span>

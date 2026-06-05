@@ -20,7 +20,11 @@ import { TableSkeleton } from '@/common/components/atoms/skeleton'
 import { COLORS } from '@/common/config/theme'
 import { DEMO_DATA } from '@/lib/data'
 import type { TradeItem } from '@/lib/types'
-import { downloadCsv, downloadMirsal, fetchJobResults } from '@/infrastructure/adapters/api/classify-api'
+import {
+  downloadCsv,
+  downloadMirsal,
+  fetchJobResults,
+} from '@/infrastructure/adapters/api/classify-api'
 import { useAppStore } from '@/store/app-store'
 import { useToastStore } from '@/store/toast-store'
 
@@ -123,7 +127,10 @@ function ExportButtons() {
   const ref = tradeData?.docMeta.ref ?? 'classification'
 
   async function handleCsv() {
-    if (!jobId || jobId === 'demo') { addToast('No job to export', 'error'); return }
+    if (!jobId || jobId === 'demo') {
+      addToast('No job to export', 'error')
+      return
+    }
     try {
       addToast('Preparing CSV…', 'info')
       await downloadCsv(jobId, ref)
@@ -134,7 +141,10 @@ function ExportButtons() {
   }
 
   async function handleMirsal() {
-    if (!jobId || jobId === 'demo') { addToast('No job to export', 'error'); return }
+    if (!jobId || jobId === 'demo') {
+      addToast('No job to export', 'error')
+      return
+    }
     try {
       addToast('Preparing Mirsal 2 XML…', 'info')
       await downloadMirsal(jobId, ref)
@@ -146,16 +156,13 @@ function ExportButtons() {
 
   return (
     <div className="flex flex-wrap gap-[9px]">
-      <Btn kind="ghost" sm icon={IconDownload}
-        onClick={handleCsv}>
+      <Btn kind="ghost" sm icon={IconDownload} onClick={handleCsv}>
         Export CSV
       </Btn>
-      <Btn kind="ghost" sm icon={IconLayers}
-        onClick={handleMirsal}>
+      <Btn kind="ghost" sm icon={IconLayers} onClick={handleMirsal}>
         Export Mirsal 2 Format
       </Btn>
-      <Btn kind="primary" sm icon={IconSend}
-        onClick={() => addToast('Report sent to Ops Team!')}>
+      <Btn kind="primary" sm icon={IconSend} onClick={() => addToast('Report sent to Ops Team!')}>
         Send to Ops Team
       </Btn>
     </div>
@@ -198,10 +205,7 @@ function ResultRow({ item, layout, onOpen }: ResultRowProps) {
             borderLeft: layout === 'terminal' ? `3px solid ${riskColor}` : '3px solid transparent',
           }}
         >
-          <span
-            className="font-mono tabular-nums"
-            style={{ fontSize: 12.5, color: COLORS.subtle }}
-          >
+          <span className="font-mono tabular-nums" style={{ fontSize: 12.5, color: COLORS.subtle }}>
             {String(item.id).padStart(2, '0')}
           </span>
         </td>
@@ -227,14 +231,16 @@ function ResultRow({ item, layout, onOpen }: ResultRowProps) {
             <div className="min-w-0">
               <div
                 className="font-[550] leading-[1.35] overflow-hidden"
-                style={{
-                  fontSize: 13.5,
-                  color: COLORS.navy,
-                  display: '-webkit-box',
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: 'vertical',
-                  textOverflow: 'ellipsis',
-                } as React.CSSProperties}
+                style={
+                  {
+                    fontSize: 13.5,
+                    color: COLORS.navy,
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    textOverflow: 'ellipsis',
+                  } as React.CSSProperties
+                }
               >
                 {item.desc}
               </div>
@@ -292,9 +298,7 @@ function ResultRow({ item, layout, onOpen }: ResultRowProps) {
       {open && (
         <tr style={{ background: '#FBFCFE' }}>
           <td colSpan={6} style={{ padding: '0 18px 16px 50px' }}>
-            <div
-              style={{ borderLeft: `2px solid ${COLORS.accent}`, paddingLeft: 14 }}
-            >
+            <div style={{ borderLeft: `2px solid ${COLORS.accent}`, paddingLeft: 14 }}>
               <div
                 className="uppercase font-bold tracking-[0.06em] mb-[5px]"
                 style={{ fontSize: 11, color: COLORS.accent }}
@@ -405,6 +409,7 @@ export function ResultsScreen() {
       return () => clearTimeout(t)
     }
     if (!jobId) return
+
     // Direct URL visit — fetch results by jobId
     fetchJobResults(jobId)
       .then((data) => {
@@ -441,26 +446,43 @@ export function ResultsScreen() {
   return (
     <div className="mx-auto px-7 pb-14" style={{ maxWidth: 1320, paddingTop: 24 }}>
       {/* Breadcrumb */}
-      <div className="flex items-center gap-1.5 mb-4" style={{ fontSize: 13, color: COLORS.subtle }}>
+      <div
+        className="flex items-center gap-1.5 mb-4"
+        style={{ fontSize: 13, color: COLORS.subtle }}
+      >
         <button
           onClick={() => navigate('/history')}
           className="font-medium transition-colors"
-          style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: COLORS.muted }}
+          style={{
+            background: 'none',
+            border: 'none',
+            padding: 0,
+            cursor: 'pointer',
+            color: COLORS.muted,
+          }}
           onMouseEnter={(e) => (e.currentTarget.style.color = COLORS.accent)}
           onMouseLeave={(e) => (e.currentTarget.style.color = COLORS.muted)}
         >
           History
         </button>
         <span style={{ color: '#CBD5E1' }}>/</span>
-        <span className="font-medium" style={{ color: COLORS.navy }}>{docMeta.ref}</span>
+        <span className="font-medium" style={{ color: COLORS.navy }}>
+          {docMeta.ref}
+        </span>
       </div>
 
       <div className="flex items-end justify-between gap-4 flex-wrap mb-4">
         <div>
-          <div className="font-semibold whitespace-nowrap" style={{ fontSize: 12.5, color: COLORS.subtle }}>
+          <div
+            className="font-semibold whitespace-nowrap"
+            style={{ fontSize: 12.5, color: COLORS.subtle }}
+          >
             Classification Report · {docMeta.client}
           </div>
-          <h2 className="font-bold tracking-tight mt-[3px] mb-0" style={{ fontSize: 23, color: COLORS.navy }}>
+          <h2
+            className="font-bold tracking-tight mt-[3px] mb-0"
+            style={{ fontSize: 23, color: COLORS.navy }}
+          >
             {docMeta.ref}
           </h2>
         </div>
@@ -478,12 +500,30 @@ export function ResultsScreen() {
         }}
       >
         {[
-          { label: 'Items Classified', value: S.total, sub: `across ${docMeta.files.length || 1} ${docMeta.files.length === 1 ? 'document' : 'documents'}` },
+          {
+            label: 'Items Classified',
+            value: S.total,
+            sub: `across ${docMeta.files.length || 1} ${docMeta.files.length === 1 ? 'document' : 'documents'}`,
+          },
           { label: 'Flagged', value: S.flagged, tone: '#DC2626', sub: 'require action' },
           { label: 'For Review', value: S.review, tone: '#D97706', sub: 'low confidence' },
-          { label: 'Sanctions Hits', value: S.sanctions, tone: S.sanctions ? '#DC2626' : '#16A34A', sub: 'OFAC partial match' },
-          { label: 'Processing Time', value: formatProcessingTime(S.processingTime), sub: 'end-to-end' },
-          { label: 'Compliance', value: S.complianceScore, tone: COLORS.accent, sub: 'score / 100' },
+          {
+            label: 'Sanctions Hits',
+            value: S.sanctions,
+            tone: S.sanctions ? '#DC2626' : '#16A34A',
+            sub: 'OFAC partial match',
+          },
+          {
+            label: 'Processing Time',
+            value: formatProcessingTime(S.processingTime),
+            sub: 'end-to-end',
+          },
+          {
+            label: 'Compliance',
+            value: S.complianceScore,
+            tone: COLORS.accent,
+            sub: 'score / 100',
+          },
         ].map((k) => (
           <div key={k.label} style={{ background: '#fff', padding: '16px' }}>
             <Stat {...k} />
@@ -492,12 +532,29 @@ export function ResultsScreen() {
       </div>
 
       {/* Table */}
-      <div style={{ background: '#fff', border: '1px solid #E8EDF3', borderRadius: 14, overflow: 'hidden' }}>
+      <div
+        style={{
+          background: '#fff',
+          border: '1px solid #E8EDF3',
+          borderRadius: 14,
+          overflow: 'hidden',
+        }}
+      >
         <div style={{ padding: '14px 16px', borderBottom: '1px solid #F1F5F9' }}>
-          <FilterBar filter={filter} setFilter={setFilter} query={query} setQuery={setQuery} count={filtered.length} />
+          <FilterBar
+            filter={filter}
+            setFilter={setFilter}
+            query={query}
+            setQuery={setQuery}
+            count={filtered.length}
+          />
         </div>
         <div style={{ overflowX: 'auto' }}>
-          {loading ? <TableSkeleton rows={8} /> : <ResultsTable items={filtered} layout="terminal" onOpen={openDrawer} />}
+          {loading ? (
+            <TableSkeleton rows={8} />
+          ) : (
+            <ResultsTable items={filtered} layout="terminal" onOpen={openDrawer} />
+          )}
         </div>
       </div>
     </div>
