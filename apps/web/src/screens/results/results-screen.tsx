@@ -408,7 +408,7 @@ export function ResultsScreen() {
       const t = setTimeout(() => setLoading(false), 400)
       return () => clearTimeout(t)
     }
-    if (!jobId) return
+    if (!jobId) return undefined
 
     // Direct URL visit — fetch results by jobId
     fetchJobResults(jobId)
@@ -420,6 +420,7 @@ export function ResultsScreen() {
         setFetchError(err.message)
         setLoading(false)
       })
+    return undefined
   }, [jobId])
 
   if (fetchError) {
