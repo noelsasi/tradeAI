@@ -1,11 +1,12 @@
 services:
-  # ── Backend API ─────────────────────────────────────────────────────────────
+  # ── Backend API (Node native runtime) ────────────────────────────────────────
   - type: web
     name: tradeai-api
-    runtime: docker
-    dockerfilePath: ./apps/api/Dockerfile
-    dockerContext: .
-    plan: starter
+    runtime: node
+    rootDir: .                              # repo root — needed for pnpm workspace + packages/types
+    buildCommand: corepack enable && corepack prepare pnpm@latest --activate && pnpm install --frozen-lockfile && pnpm --filter api build
+    startCommand: node apps/api/dist/index.js
+    plan: free
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
@@ -15,36 +16,35 @@ services:
       - key: LOG_LEVEL
         value: info
       - key: DATABASE_URL
-        sync: false           # set manually in Render dashboard — Neon connection string
+        sync: false           # Neon connection string — set in Render dashboard
       - key: AI_SERVICE_URL
         fromService:
           name: tradeai-ai
           type: web
-          property: host      # Render injects internal hostname automatically
+          property: host
       - key: CORS_ORIGIN
-        sync: false           # set to https://tradeai.nexavinetech.com in dashboard
+        sync: false           # https://tradeai.nexavinetech.com — set in Render dashboard
       - key: REDIS_URL
-        value: ""             # Redis not used; keeps env schema happy
+        value: ""             # Redis not used; satisfies env schema
 
-  # ── AI / DS Service ──────────────────────────────────────────────────────────
+  # ── AI / DS Service (Python native runtime) ──────────────────────────────────
   - type: web
     name: tradeai-ai
-    runtime: docker
-    dockerfilePath: ./services/ai/Dockerfile
-    dockerContext: ./services/ai
-    plan: starter
+    runtime: python
+    rootDir: services/ai
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    plan: free
     healthCheckPath: /health
     envVars:
-      - key: PORT
-        value: 8000
       - key: LOG_LEVEL
         value: info
       - key: DATABASE_URL
-        sync: false           # same Neon connection string as API
+        sync: false           # Neon connection string — set in Render dashboard
       - key: LLM_PROVIDER
-        value: anthropic
-      - key: ANTHROPIC_API_KEY
-        sync: false           # set manually in Render dashboard
+        value: openai
+      - key: OPENAI_API_KEY
+        sync: false           # set in Render dashboard
       - key: MAX_FILE_SIZE_MB
         value: 10
       - key: REQUEST_TIMEOUT_SECONDS
