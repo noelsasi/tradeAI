@@ -12,186 +12,129 @@ tradeAI/
 ├── services/
 │   └── ai/           # Python FastAPI AI microservice
 ├── packages/
-│   └── types/        # Shared TypeScript types
+│   └── types/        # Shared TypeScript types (source-of-truth)
 └── infra/
     └── db/           # PostgreSQL migrations (pgvector)
 ```
 
 **Stack:**
 - **Frontend:** React 19, Vite, Tailwind CSS, Zustand, React Router v7
-- **API:** Node.js 20, Fastify v5, TypeScript (strict), postgres.js, ioredis
-- **AI Service:** Python 3.12, FastAPI, OpenAI / Anthropic / Azure OpenAI
+- **API:** Node.js 20, Fastify v5, TypeScript (strict), postgres.js
+- **AI Service:** Python 3.13, FastAPI, OpenAI / Anthropic
 - **Database:** PostgreSQL 16 with pgvector extension
-- **Cache:** Redis 7
-- **Package manager:** pnpm (workspaces)
 
 ---
 
-## Prerequisites
+## Running each service
 
-- Node.js 20 LTS
-- pnpm 9+
-- Docker & Docker Compose
-- Python 3.12+ (for running the AI service locally without Docker)
+Each service is fully independent — no monorepo tooling required.
 
----
-
-## Setup
-
-### 1. Install dependencies
+### Web (`apps/web`)
 
 ```bash
-pnpm install
+cd apps/web
+npm install
 ```
 
-### 2. Configure environment variables
-
-Copy the root example and fill in values:
-
-```bash
-cp .env.example .env
+Create `.env`:
+```
+VITE_API_URL=http://localhost:3001
 ```
 
-For the web app:
-
 ```bash
-cp apps/web/.env.example apps/web/.env
-```
-
-Key variables to set in `.env`:
-
-| Variable | Description |
-|---|---|
-| `DATABASE_URL` | PostgreSQL connection string |
-| `REDIS_URL` | Redis connection string |
-| `AI_SERVICE_URL` | Python AI service URL (default: `http://localhost:8000`) |
-| `LLM_PROVIDER` | `openai`, `anthropic`, or `azure_openai` |
-| `OPENAI_API_KEY` | Required if using OpenAI |
-| `ANTHROPIC_API_KEY` | Required if using Anthropic |
-
-### 3. Start infrastructure (Postgres + Redis)
-
-```bash
-pnpm db:up
+npm run dev        # dev server at http://localhost:5173
+npm run build      # production build
+npm run preview    # preview production build
 ```
 
 ---
 
-## Development
+### API (`apps/api`)
 
-### Run everything locally (recommended)
-
-**Terminal 1 — infrastructure:**
 ```bash
-pnpm db:up
+cd apps/api
+npm install
 ```
 
-**Terminal 2 — AI service:**
+Create `.env` (copy from `.env.example` at repo root):
+```
+PORT=3001
+DATABASE_URL=postgresql://user:pass@localhost:5432/tradeai
+AI_SERVICE_URL=http://localhost:8000
+CORS_ORIGIN=http://localhost:5173
+LOG_LEVEL=info
+```
+
+```bash
+npm run dev        # dev server with hot reload at http://localhost:3001
+npm run build      # compile TypeScript to dist/
+npm start          # run compiled output
+npm test           # run tests
+```
+
+Seed sanctions data (runs automatically on startup, or manually):
+```bash
+npm run seed:sanctions
+npm run seed:sanctions:force   # force re-seed
+```
+
+---
+
+### AI Service (`services/ai`)
+
 ```bash
 cd services/ai
 python -m venv .venv
 source .venv/bin/activate      # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
 ```
 
-**Terminal 3 — API:**
-```bash
-pnpm dev:api
+Create `.env`:
 ```
-
-**Terminal 4 — Web:**
-```bash
-pnpm dev
+LLM_PROVIDER=openai            # openai or anthropic
+OPENAI_API_KEY=sk-...
+ANTHROPIC_API_KEY=sk-ant-...   # if using anthropic
+DATABASE_URL=postgresql://user:pass@localhost:5432/tradeai
+MAX_FILE_SIZE_MB=10
+REQUEST_TIMEOUT_SECONDS=30
 ```
-
-Web app runs at `http://localhost:5173`, API at `http://localhost:3001`.
-
-### Run all apps in parallel (web + api only)
 
 ```bash
-pnpm dev:all
+uvicorn app.main:app --reload --port 8000
 ```
 
----
-
-## Available Scripts
-
-| Command | Description |
-|---|---|
-| `pnpm dev` | Start web frontend |
-| `pnpm dev:api` | Start API server with hot reload |
-| `pnpm dev:all` | Start web + API in parallel |
-| `pnpm build` | Build all packages and apps |
-| `pnpm lint` | Lint all workspaces |
-| `pnpm type-check` | TypeScript check across all workspaces |
-| `pnpm test` | Run all tests |
-| `pnpm db:up` | Start Postgres + Redis via Docker |
-| `pnpm db:down` | Stop Postgres + Redis |
-| `pnpm docker:up` | Start full stack (includes API + AI service) |
-| `pnpm docker:down` | Stop full Docker stack |
-| `pnpm docker:logs` | Tail Docker logs |
-
-### API-specific scripts
-
-```bash
-# Seed OFAC/sanctions data (runs automatically on startup)
-pnpm --filter api seed:sanctions
-
-# Force re-seed
-pnpm --filter api seed:sanctions:force
-```
-
----
-
-## Docker (full stack)
-
-To run everything — including the API and AI service — in Docker:
-
-```bash
-cp .env.example .env   # fill in LLM API keys
-pnpm docker:up
-```
-
-Services:
-- Web: `http://localhost:5173`
-- API: `http://localhost:3001`
-- AI service: `http://localhost:8000`
-- Postgres: `localhost:5432`
-- Redis: `localhost:6379`
+Health check: `http://localhost:8000/health`
 
 ---
 
 ## Database
 
-Migrations run automatically on first `db:up` from `infra/db/migrations/`.
+Requires PostgreSQL 16+ with the pgvector extension. Run migrations from `infra/db/migrations/` before starting the API.
 
-The schema uses:
+Schema:
 - `classification_jobs` — tracks document processing jobs
 - `classification_results` — stores per-item HS code results
 - `sanctions_entries` — OFAC/SDN screening data (seeded on API start)
-- pgvector for semantic similarity on HS code resolution
 
 ---
 
-## Project Structure (Web)
+## Project Structure
 
+**Web (`apps/web/src/`):**
 ```
-apps/web/src/
 ├── common/           # Shared components, hooks, utils
 ├── infrastructure/   # API client, adapters, stores
 └── screens/          # Page-level components (landing, processing, results, history)
 ```
 
-## Project Structure (API)
-
+**API (`apps/api/src/`):**
 ```
-apps/api/src/
 ├── config/           # Environment validation (Zod)
 ├── domain/           # Business logic (classification, sanctions)
-├── infrastructure/   # DB client, Redis, AI service client
+├── infrastructure/   # DB client, AI service client
 ├── repositories/     # Data access layer
 ├── routes/           # HTTP route handlers
-├── middleware/       # Error handling
-└── plugins/          # Fastify plugins (CORS, helmet, rate-limit)
+├── middleware/        # Error handling
+├── plugins/          # Fastify plugins (CORS, helmet, rate-limit)
+└── types/            # Shared TypeScript types (copied from packages/types)
 ```
