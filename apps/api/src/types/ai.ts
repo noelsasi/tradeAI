@@ -1,4 +1,4 @@
-import type { RiskLevel, SanctionStatus, HsAlternative } from './trade';
+import type { RiskLevel, SanctionStatus, HsAlternative } from './trade.js';
 
 // ── Extract endpoint ──────────────────────────────────────────────────────────
 
